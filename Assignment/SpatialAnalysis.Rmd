@@ -1,0 +1,44 @@
+---
+title: "SpatialAnalysis"
+author: "Brook Hemphill"
+date: "2024-03-29"
+output: html_document
+---
+
+
+```{r Install packages, message=FALSE, warning=FALSE}
+#Import the tidyverse library 
+library(tidyverse, quietly = TRUE)
+library(lubridate); library(here)
+
+#install.packages('sf')
+library(sf)
+#install.packages('leaflet')
+library(leaflet)
+#install.packages('mapview')
+library(mapview); mapviewOptions(fgb = FALSE)
+
+#Disable on-the-fly projections
+sf::sf_use_s2(FALSE)
+```
+
+## R Markdown
+
+Upload the Spatial Data
+1. https://catalog.data.gov/dataset/tiger-line-shapefile-2019-state-california-current-census-tract-state-based 
+2. https://cecgis-caenergy.opendata.arcgis.com/datasets/9398e39a0424434b9e95ccf8e8938807_0/explore?location=36.212604%2C-119.976002%2C8.96    
+
+```{r cars}
+#upload the datasets 
+Solar_footprint<- st_read(here('~/GuptaHemphillWilliams_ENV872_FinalProject/Data/Solar_Footprints_V2_-1101629766070969057 (1).geojson') 
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
