@@ -1,0 +1,95 @@
+---
+title: "EDA Final Project"
+author: "Shubhangi Gupta, Brook Hemphill , Sydney Williams"
+date: "04/30/2024"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Setup
+
+```{r packages}
+# loading packages
+library(tidyverse)
+library(dplyr)
+library(lubridate)
+library(readxl)
+library(ggplot2)
+library(forecast)
+library(Kendall)
+library(tseries)
+library(outliers)
+library(smooth)
+library(readr)
+library(zoo)
+library(readxl)
+```
+
+# Data Wrangling | Energy Data
+
+```{r wrangle}
+#Importing the datasets
+CA_DSP_Energy_Raw <- read_excel("Energy Data/CaliforniaDistributedSolarCapGen2015-21.xlsx")
+View(CA_DSP_Energy_Raw)
+
+#FIX: make row 1 the title row and remove the current title. some argument in the read_excel
+
+CA_DSP_Prices_Raw <- read_excel("Energy Data/NEMPVPriceData2015-22.xlsx")
+View(CA_DSP_Prices_Raw)
+
+#Wrangling CA_DSP_Energy Dataset
+
+#Removing rows and columns that are not required
+CA_DSP_Energy <- CA_DSP_Energy_Raw[-c(1),-c(3,4)]
+view(CA_DSP_Energy)
+
+#FIX: clean up decimal places
+
+```
+
+# [ADD]
+
+```{r}
+
+
+```
+
+## [ADD]
+
+```{r}
+
+```
+
+## [ADD]
+
+```{r}
+
+```
+
+## [ADD]
+
+```{r}
+
+```
+
+## [ADD]
+
+```{r}
+
+```
+
+## [ADD]
+
+```{r}
+
+```
+
+## [ADD]
+
+```{r}
+
+```
+
