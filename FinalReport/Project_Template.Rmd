@@ -1,3 +1,8 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
 \newpage
 \tableofcontents 
 \newpage
@@ -8,29 +13,99 @@
 
 ```{r setup, include=FALSE}
 # Set your working directory
+setwd('~/GuptaHemphillWilliams_ENV872_FinalProject')
 
 # Load your packages
+library(tidyverse, quietly = TRUE)
+library(lubridate)
+library(here)
+library(sf)
+library(leaflet)
+library(mapview)
+mapviewOptions(fgb = FALSE)
+library(ggplot2)
+library(viridis)
+# Disable on-the-fly projections
+sf::sf_use_s2(FALSE)
 
 # Set your ggplot theme
 
 # Load your datasets
+Solar.footprint <- st_read(here("~/GuptaHemphillWilliams_ENV872_FinalProject/SpatialData/Solar_Footprints_V2_-1101629766070969057 (2).geojson")) %>%
+  select(COUNTYNAME, Type, Urban_Rural, Acres, geometry)
+
+counties_sf <- st_read(here("~/GuptaHemphillWilliams_ENV872_FinalProject/SpatialData/cb_2018_us_county_20m.shp"))
+
+svi2018_CA_raw <- read.csv("~/GuptaHemphillWilliams_ENV872_FinalProject/SpatialData/California_county.csv",
+  colClasses = c('FIPS' = 'factor')) %>% 
+  select(COUNTY, FIPS, LOCATION, E_TOTPOP, E_POV, E_MINRTY)
+
+# Filter the data to only include California counties
+ca_counties_sf <- counties_sf[counties_sf$STATEFP == "06", ]
+
+#Join the SVI attributes to the county spatial features
+counties_sf_join <-  merge(x = ca_counties_sf,
+                           y = svi2018_CA_raw, 
+                           by.x = "GEOID", 
+                           by.y = "FIPS" )
 
 ```
 
 
 # Rationale and Research Questions
 
+Part 3: Spatial Analysis Research Questions
+
+Understanding the spatial distribution of large-scale solar footprints (i.e., rooftop, parking lot, or ground solar) and socioeconomic conditions in California is an important issue to understand for social and environmental reasons. Knowing the locations of large-scale solar facilities and how they overlap with high densities of minority populations can help identify environmental justice concerns, inform policymakers' decisions, and ensure renewable energy efforts are equitably distributed. To visualize the spatial distribution of solar footprints in California and minority population sizes in proximity, the following research questions were addressed:
+
+1. What is the relationship between solar footprint size and location in rural and urban counties? What counties in California have the largest area in acres of large-scale solar footprint and what is the dominant type of facility (i.e., rooftop, parking lot, or ground solar)? 
+
+Hypothesis: the county in California with the largest area in acres of large-scale solar footprints will be in a rural area
+
+2. What is the spatial distribution of solar footprints and minority population size in California? What county in California has the highest minority population size and what is the dominant type of solar footprint? 
+
+Hypothesis: Counties with high minority populations will have larger areas in acres of solar footprints than counties with low minority populations. 
 
 
 \newpage
 
 # Dataset Information
 
+Finding the Data: 
+
+For the spatial analysis portion of this project, the following datasets were used: (I) Solar Footprints in California GeoJSON data from the California Energy Commission; (II) 2018 Social Vulnerability Index CSV file from the Agency for Toxic Substances and Disease Registry; and (III) a USA Counties Shapefile filtered for California counties. The solar footprints dataset was found through the Environmental Data Initiative using the Google Dataset Search by typing in "solar panel locations in California". The last two datasets were used in class but filtered for California.
+
+Explaining the data:
+
+The solar footprint feature class is a dataset that combines imagery to interpret a footprint of medium to large scale solar facilities throughout California and was last updates in August 2023. The feature class consists of polygons representing solar footprints and were digitized from imagery.  The imagery from this dataset was obtained from Esri World Imagery, USGS National Agriculture Imagery Program (NAIP), and 2020 SENTINEL 2 Satellite Imagery, 2023. This dataset includes solar facilities with larger footprints, such as large rooftops and parking lot structures, but does not contain information on small scale solar, such as residential footprints. Specifically, it includes data on rooftop solar on large buildings, parking lot solar greater than 1 acre or clustered, and ground solar greater than 1 acre, or clustered. The features were then classified into urban and rural areas with the application of 42 U.S. Code $ 1490 rural definition. The footprint for this dataset is 129,742 acres. The Solar Footprint GeoJSON dataset is a type of format that allows us to access data directly without requiring downloads. 
+
+The CDC Social Vulnerability Index (CDC SVI) is a tool created by the Agency for Toxic Substances and Disease Registry (ATSDR) to help public health officials and emergency response planners identify and map communities that will most likely need support before, during, and after a hazardous event. The 15 social factors, such as, information about unemployment, minority status, and disability and groups them into four categories. The categories include socioeconomic status (unemployed, below the poverty line, income level, and high school diploma status), household composition and disability (aged 65 or older, aged 17 or younger, disability status, marital status), minority status and language abilities, and housing and transportation type. Each Census tract then receives a ranking for each theme and then an overall ranking, where higher values are correlated to greater vulnerability.  
+
+The USA Counties shapefile filtered for California contains attribute information on STATEFP, COUNTYFP, COUNTYNS, AFFGEOID, GEOID, NAME, LSAD, ALAND, AWATER, and a geometry. The STATEFP and COUNTYFP are state and county specific codes, respectively. 
+
+Data Wrangling Methods:
+
+To import the Solar Footprints shapefile and USA Counties shapefile dataset into R, I used the “sf” package and “st_read” function to read in the dataset. The Social Vulnerability Index file was read in using the “utils” packages and “read.csv()” function.  The USA Counties shapefile dataset contained all states and associated counties in the US, however, our research question is focused on California only. To specifically target California data, we utilized the “dplyr” package along with the “filter()” function to isolate records associated with the state code "06," corresponding to California's STATEFPS code. For the Solar Footprint and Social Vulnerability data, I wrangled the dataset using a pipe, the “dpylr” package and “select()” function to select for the county name, type of solar panel, urban or rural status, and the geometry and then the county, FIPS, location, total population, population in poverty, and population of minorities, respectively. The Social Vulnerability dataset also required that the FIPS code be converted to a factor.   
 
 
 \newpage
 
 # Exploratory Analysis 
+PART THREE: Spatial Analysis exploration of solar footprints across California counties. The map, "Solar Footprint Distribution across Counties in Ca" shows that the solar footprints are concentrated in cities like San Fransisco and Los Angleles, as well as more inland across counties in Bakersfield. 
+
+```{r Spatial Analysis, echo=FALSE, paged.print=FALSE}
+
+# Plotting using geom_sf()
+
+ggplot() +
+  geom_sf(data = ca_counties_sf, fill = "lightgrey") +
+  geom_sf(data = Solar.footprint, color = "navy") + 
+  ggtitle("Solar Footprint Distribution across Counties in CA") +
+  theme(panel.background = element_rect(fill = "darkgrey"),
+        plot.title = element_text(hjust = 0.5))
+
+
+```
 
 
 
@@ -38,7 +113,86 @@
 
 # Analysis
 
+## Spatial Analysis Question 1: What is the relationship between solar footprint size and location in rural or urban counties? What counties in California have the largest area in acres of large-scale solar footprints and what is the dominant type of facility (i.e., rooftop, parking lot, or ground solar)? 
 
+## Hypothesis: the county in California with the largest area in acres of large-scale solar footprints will be in a rural area
+
+The map illustrating solar footprints across California counties shows a significant trend: smaller solar installations tend to cluster around urban and metropolitan centers, while larger solar footprints dominate in rural areas. Kern County stands out as the county with the largest area in acres (30831.1) covered by solar footprints, with ground-mounted installations being the dominant type. Notably, Kern County is classified as a rural area. This proves our hypothesis that the largest area covered by large-scale solar footprints would be found in a rural setting true.
+
+```{r Spatial Analysis Question 1, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+#visualize distribution of rural and urban solar footprints
+mapview(ca_counties_sf, col.regions = "tan") + 
+  mapview(Solar.footprint, zcol = "Urban_Rural", col.regions = c("Urban" = "red", "Rural" = "blue"))
+
+# Group Solar Footprint data by COUNTYNAME and calculate sum of Acres
+county_acres_sum <- Solar.footprint %>%
+  group_by(COUNTYNAME) %>%
+  summarise(total_acres = sum(Acres))
+
+
+# Filter the Solar Footprint data to only include Kern County
+kern_solar <- Solar.footprint %>% 
+  filter(COUNTYNAME == "Kern County")
+
+# Summarize the total acres by solar facility type
+kern_solar_types <- kern_solar %>%
+  group_by(Type) %>%
+  summarise(total_acres = sum(Acres))
+
+#filter counties_sf for kern county 
+kern_county_boundary <- counties_sf %>%
+  filter(NAME == "Kern")
+
+#filter for dominant type
+kern_ground_footprint <- kern_solar_types %>%
+  filter(Type == "Ground")
+
+# Plotting using geom_sf()
+
+ggplot() +
+  geom_sf(data = kern_county_boundary, fill = "white") +
+  geom_sf(data = kern_ground_footprint, aes(fill = Type), color = "blue") +
+  scale_fill_manual(values = c("blue")) + 
+  labs(fill = "Type")  +
+  ggtitle("Kern County Boundary and Ground Solar Footprint in acres") +
+  theme(panel.background = element_rect(fill = "darkgrey"))
+
+
+```
+
+
+## Spatial Analysis Question 2: What is the spatial distribution of industrial solar footprints and minority population size in California? What county in California has the highest minority population ranking and what is the dominant type of industrial solar footprint? 
+
+## Hypothesis: Counties with high minority populations will have larger areas in acres of solar footprints than counties with low minority populations.  
+
+Drawing specific conclusions about minority populations and solar footprint densities from the spatial map illustrating minority population sizes across counties and distribution of solar footprint is unclear. However, the map shows that the highest minority population is located in Los Angeles, allowing for further analysis on different types of solar footprints for in this county, as illustrated in in the la_solar_types map in LA County map. From the map, it is clear that ground solar footprints are found more toward Lancaster and parking and rooftop solar footprints are found closer to the coast. 
+```{r Spatial Analysis Question 2, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+#visualize with mapview
+mapview(counties_sf_join, zcol = 'E_MINRTY',colorpalette = "viridis") + mapview(Solar.footprint, zcol = "Type", col.region = c("red", "green", "blue"))
+
+# Filter the Solar Footprint data to only include KLA 
+LA_solar <- Solar.footprint %>% 
+  filter(COUNTYNAME == "Los Angeles County")
+
+# Summarize the total acres by solar facility type
+LA_solar_types <- LA_solar %>%
+  group_by(Type) %>%
+  summarise(total_acres = sum(Acres))
+
+#filter counties_sf for kern county 
+LA_county_boundary <- counties_sf %>%
+  filter(NAME == "Los Angeles")
+
+#filter for dominant type
+LA_ground_footprint <- LA_solar_types %>%
+  filter(Type == "Ground")
+
+
+mapview(LA_county_boundary) + 
+  mapview(LA_solar_types, zcol = "Type", col.regions = c("red", "blue", "black"))
+```
 
 ## Question 1: <insert specific question here and add additional subsections for additional questions below, if needed>
 
@@ -51,6 +205,12 @@
 
 # Summary and Conclusions
 
+Spatial Analysis Summary 
+
+Understanding the spatial distribution of large-scale solar footprints in California counties is critical for addressing both social and environmental issues. By examining the distribution, we can identify areas of overlap with minority populations and address climate justice issues to ensure an equitable distribution of renewable energy for all. This study addresses two spatial analysis questions: (1)the relationship between solar footprint size and location in rural or urban counties, and (2) the spatial distribution of industrial solar footprints and minority population size.
+
+Spatial Analysis Conclusions 
+This analysis revealed trends in the spatial distribution of solar footprints across California counties. Smaller solar installations were found to cluster more around urban areas, while larger solar footprints were found in rural areas. From the analysis, Kern county was found as the largest area covered by solar footprints, which supported the hypothesis that the county in California with the largest area in acres of large-scale solar footprints will be in a rural area. When analyzing minority population densities, Los Angeles was identified as having the largest population size across counties. The results showed that ground solar footprints were found clustered inland near Lancaster, while parking lot and rooftop installations were found concentrated along the coast. However, drawing specific conclusions about minority populations and solar footprint densities from the spatial map illustrating minority population sizes across counties and distribution of solar footprint was unclear. Overall, this analysis provides valuable insights into energy infrastructure and socioeconomic factors in California. 
 
 \newpage
 
