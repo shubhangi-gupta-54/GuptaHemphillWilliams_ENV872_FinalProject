@@ -1,0 +1,44 @@
+---
+title: "PlayWithArcGIS"
+author: "John Fay"
+date: "2024-04-02"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup}
+library(FedData)
+library(sf)
+library(tidyverse)
+library(here)
+```
+
+```{r get data}
+#Get county features
+nc_counties_fn <- system.file("shape/nc.shp", package="sf")
+nc_counties_sf <- st_read(nc_counties_fn)
+
+#Subset Durham
+durham_sf <- nc_counties_sf %>% filter(FIPS == "37063")
+
+#Get NLCD for Durham
+durham_nlcd <- get_nlcd(
+  template = durham_sf,
+  label = "durham_nlcd",
+  year = 2019,
+  dataset = 'landcover',
+  landmass = 'L48',
+  extraction.dir = here("./data/spatial")
+)
+```
+
+```{r connect to data}
+the_url <- 'https://landscape10.arcgis.com/arcgis/rest/services/USA_NLCD_Land_Cover/ImageServer'
+r_lyr = arc_open(the_url)
+```
+
