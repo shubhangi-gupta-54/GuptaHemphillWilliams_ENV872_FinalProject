@@ -26,34 +26,81 @@ library(smooth)
 library(readr)
 library(zoo)
 library(readxl)
+library(cowplot)
 ```
 
 # Data Wrangling | Energy Data
 
 ```{r wrangle}
-#Importing the datasets
-CA_DSP_Energy_Raw <- read_excel("Energy Data/CaliforniaDistributedSolarCapGen2015-21.xlsx")
-View(CA_DSP_Energy_Raw)
+#DISTRIBUTED SOLAR PV (<1 MW) IN CALIFORNIA: CAPACITY & GENERATION
 
-#FIX: make row 1 the title row and remove the current title. some argument in the read_excel
+#Importing the dataset
+CA_DSP_Energy_Raw <- read_excel("EnergyData/CaliforniaDistributedSolarCapGen2015-21.xlsx", col_names=TRUE)
+glimpse(CA_DSP_Energy_Raw)
 
-CA_DSP_Prices_Raw <- read_excel("Energy Data/NEMPVPriceData2015-22.xlsx")
-View(CA_DSP_Prices_Raw)
-
+#Price data is quarterly so using electricity data for March, June, September & December
+CA_DSP_Energy <- CA_DSP_Energy_Raw[CA_DSP_Energy_Raw$Month %in% c(3, 6, 9, 12),]
+  
 #Wrangling CA_DSP_Energy Dataset
+CA_DSP_Energy <- CA_DSP_Energy %>%
+  mutate(Date = paste(Year, Month, sep="-"))%>%
+  select("Date", c(,5:12))
 
-#Removing rows and columns that are not required
-CA_DSP_Energy <- CA_DSP_Energy_Raw[-c(1),-c(3,4)]
-view(CA_DSP_Energy)
+#Converting Date column to date object
+CA_DSP_Energy$Date <- ym(CA_DSP_Energy$Date)
+glimpse(CA_DSP_Energy)
 
-#FIX: clean up decimal places
+#Rounding the decimal points
+CA_DSP_Energy[,c(2:9)]<-round(CA_DSP_Energy[,c(2:9)])
 
+#QUARTERLY ELECTRICTY PRICES FOR SOLAR PV >=10 KW IN CA
+
+#Importing the data
+CA_DSP_Prices_Raw <- read_excel("EnergyData/NEMPVPriceData2015-22.xlsx")
+glimpse(CA_DSP_Prices_Raw)
+
+#Removing 2015 and 2023 because of incomplete data in these two years
+CA_DSP_Prices <- CA_DSP_Prices_Raw[3:30,]
+glimpse(CA_DSP_Prices)
+
+#Cleaning the dates
+Price_Month <- rep(c(3,6,9,12),7)
+CA_DSP_Prices <- cbind(CA_DSP_Prices, Price_Month)
+CA_DSP_Prices$Category <- substr(CA_DSP_Prices$Category, start=1, stop=4)
+CA_DSP_Prices$Date <- paste0(CA_DSP_Prices$Category,"-",CA_DSP_Prices$Price_Month)
+CA_DSP_Prices$Date <- ym(CA_DSP_Prices$Date)
+
+#Removing column with prices for capacity <10kW because not relevant to our analysis
+CA_DSP_Prices <- CA_DSP_Prices %>%
+  select(c(5,3))
+colnames(CA_DSP_Prices) <- c("Date", "Prices")
+
+#COMBINING ELECTRICITY & PRICE DATA INTO ONE DATAFRAME
+CA_DSP_Energy_Price <- cbind(CA_DSP_Energy, CA_DSP_Prices$Prices)
+colnames(CA_DSP_Energy_Price)[colnames(CA_DSP_Energy_Price)=="CA_DSP_Prices$Prices"]<-"Prices"
+
+# Plotting California energy prices vs capacity & generation 
+
+CA_Energy_Gen_Plot <- ggplot(CA_DSP_Energy_Price)+
+  geom_line(aes(x=CA_DSP_Energy$Date, y=CA_DSP_Energy$`Gen-Total`), color = "green")
+
+CA_Energy_Cap_Plot <- ggplot(CA_DSP_Energy_Price)+
+  geom_line(aes(x=CA_DSP_Energy$Date, y=CA_DSP_Energy$`Cap-Total`), color = "orange")
+
+CA_Energy_Price_Plot  <- ggplot(CA_DSP_Energy_Price)+
+  geom_line(aes(x=CA_DSP_Prices$Date, y=CA_DSP_Prices$Prices), color = "blue")
+
+plot_grid( CA_Energy_Cap_Plot, CA_Energy_Gen_Plot, CA_Energy_Price_Plot, nrow=1)
 ```
 
-# [ADD]
+# [Data Analysis | Energy]
 
 ```{r}
+#GLM between Price vs Capacity and Generation
 
+
+
+DSP_price_cap_glm <- lm(Prices ~ Cap-total, data = CA_DSP_Prices)
 
 ```
 
