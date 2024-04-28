@@ -26,7 +26,9 @@ How: Analysis is conducted using R programming language, as evidenced by the pre
 
 ## Investigators
 
-<Brook Hemphill, brook.hemphill@duke.edu - Spatial Analyst, MF candidate>, <Shubhangi Gupta, shubhangi.gupta@duke.edu , MEM candidate - Time Series Analyst> <Sydney Williams, sydney,williams@duke.edu, MEM candidate - GLM Analyst>
+<Brook Hemphill, brook.hemphill@duke.edu - Spatial Analyst, MF candidate>, 
+<Shubhangi Gupta, shubhangi.gupta@duke.edu , MEM candidate - Energy Analyst> 
+<Sydney Williams, sydney,williams@duke.edu, MEM candidate - Energy Analyst>
 
 ## Keywords
 
