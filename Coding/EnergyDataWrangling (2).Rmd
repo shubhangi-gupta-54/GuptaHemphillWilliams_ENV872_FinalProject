@@ -96,28 +96,36 @@ CA_Energy_Price_Plot  <- ggplot(CA_DSP_Energy_Price)+
 plot_grid( CA_Energy_Cap_Plot, CA_Energy_Gen_Plot, CA_Energy_Price_Plot, nrow=1)
 ```
 
-# [Data Analysis | Energy]
+# Data Analysis | General Linear Model (GLM)
 
 ```{r}
 #GLM between Price vs Capacity and Generation
 
 DSP_price_capgen_glm <- lm(Prices ~ Cap_Total + Gen_Total, data = CA_DSP_Energy_Price)
-summary(DSP_price_capgen_glm)
-
+print(summary(DSP_price_capgen_glm))
 
 #GLM Between Price vs Residential Capacity and Generation
 
 DSP_price_residcapgen_glm <- lm(Prices ~ Cap_Resid + Gen_Resid, data = CA_DSP_Energy_Price)
-summary(DSP_price_residcapgen_glm)
+print(summary(DSP_price_residcapgen_glm))
 
+#GLM Between Price vs Commercial Capacity and Generation
+
+DSP_price_commercialcapgen_glm <- lm(Prices ~ Cap_Commercial + Gen_Commercial, data = CA_DSP_Energy_Price)
+print(summary(DSP_price_commercialcapgen_glm))
+
+#GLM Between Price vs Industrial Capacity and Generation
+
+DSP_price_industrialcapgen_glm <- lm(Prices ~ Cap_Indus + Gen_Indus, data = CA_DSP_Energy_Price)
+print(summary(DSP_price_industrialcapgen_glm))
 
 ```
 
-## [ADD]
+## Plotting generation vs prices
 
 
 ```{r}
-# Plotting Solar PV Generation vs. Electricity Prices
+# Plotting Solar Capacity vs. Electricity Prices
 plot(CA_DSP_Energy_Price$Cap_Total, CA_DSP_Energy_Price$Prices, 
      xlab = "Solar PV Capacity", ylab = "Electricity Prices",
      main = "Solar PV Capacity vs Electricity Prices 2015-2021")
@@ -145,9 +153,24 @@ DSP_price_gen_glm <- lm(Prices ~ Gen_Total, data = CA_DSP_Energy_Price)
 abline(DSP_price_gen_glm, col = "red")
 ```
 
-## [ADD]
+# Conducting a time series analysis on Energy vs Price
 
 ```{r}
+#Converting the data into a time series
+TotalPVCapacity <- CA_DSP_Energy$`Cap-Total`
+TotalPVCapacity_ts <- ts(TotalPVCapacity, start = c(2015,1), frequency =4)
+TotalPVCapacity_ts
+
+TotalPVGeneration <- CA_DSP_Energy$`Gen-Total`
+TotalPVGeneration_ts <- ts(TotalPVGeneration, start = c(2015,1), frequency =4)
+TotalPVGeneration_ts
+
+#Decomposing the data
+TotalPVCapacity_ts_decomposed <- stl(TotalPVCapacity_ts, s.window="periodic")
+plot(TotalPVCapacity_ts_decomposed)
+
+#Checking for trends
+print(trend::smk.test(TotalPVCapacity_ts))
 ```
 ```
 
