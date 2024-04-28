@@ -79,6 +79,9 @@ colnames(CA_DSP_Prices) <- c("Date", "Prices")
 CA_DSP_Energy_Price <- cbind(CA_DSP_Energy, CA_DSP_Prices$Prices)
 colnames(CA_DSP_Energy_Price)[colnames(CA_DSP_Energy_Price)=="CA_DSP_Prices$Prices"]<-"Prices"
 
+# Change column names
+colnames(CA_DSP_Energy_Price) <- c("Date", "Cap_Resid", "Cap_Commercial", "Cap_Indus", "Cap_Total", "Gen_Resid", "Gen_Commercial", "Gen_Indus", "Gen_Total", "Prices")
+
 # Plotting California energy prices vs capacity & generation 
 
 CA_Energy_Gen_Plot <- ggplot(CA_DSP_Energy_Price)+
@@ -98,34 +101,59 @@ plot_grid( CA_Energy_Cap_Plot, CA_Energy_Gen_Plot, CA_Energy_Price_Plot, nrow=1)
 ```{r}
 #GLM between Price vs Capacity and Generation
 
+DSP_price_capgen_glm <- lm(Prices ~ Cap_Total + Gen_Total, data = CA_DSP_Energy_Price)
+summary(DSP_price_capgen_glm)
 
 
-DSP_price_cap_glm <- lm(Prices ~ Cap-total, data = CA_DSP_Prices)
+#GLM Between Price vs Residential Capacity and Generation
+
+DSP_price_residcapgen_glm <- lm(Prices ~ Cap_Resid + Gen_Resid, data = CA_DSP_Energy_Price)
+summary(DSP_price_residcapgen_glm)
+
+
+```
+
+## [ADD]
+
+
+```{r}
+# Plotting Solar PV Generation vs. Electricity Prices
+plot(CA_DSP_Energy_Price$Cap_Total, CA_DSP_Energy_Price$Prices, 
+     xlab = "Solar PV Capacity", ylab = "Electricity Prices",
+     main = "Solar PV Capacity vs Electricity Prices 2015-2021")
+
+# Fitting linear regression model
+DSP_price_cap_glm <- lm(Prices ~ Cap_Total, data = CA_DSP_Energy_Price)
+
+# Adding a regression line
+abline(DSP_price_cap_glm, col = "red")
 
 ```
 
 ## [ADD]
 
 ```{r}
+# Plotting Solar PV Generation vs. Electricity Prices
+plot(CA_DSP_Energy_Price$Gen_Total, CA_DSP_Energy_Price$Prices, 
+     xlab = "Solar PV Generation", ylab = "Electricity Prices",
+     main = "Solar PV Generation vs Electricity Prices 2015-2021")
 
+# Fitting linear regression model
+DSP_price_gen_glm <- lm(Prices ~ Gen_Total, data = CA_DSP_Energy_Price)
+
+# Adding a regression line
+abline(DSP_price_gen_glm, col = "red")
 ```
 
 ## [ADD]
 
 ```{r}
-
+```
 ```
 
 ## [ADD]
 
 ```{r}
-
-```
-
-## [ADD]
-
-```{r}
-
 ```
 
 ## [ADD]
