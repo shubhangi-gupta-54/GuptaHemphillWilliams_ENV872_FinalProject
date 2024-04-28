@@ -19,9 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 \listoffigures 
 \newpage
 
-```{r setup, include=FALSE}
-# Set your working directory
-#setwd('~/GuptaHemphillWilliams_ENV872_FinalProject')
+```{r loading packages, include=FALSE}
 
 # Load your packages
 library(dplyr)
@@ -44,6 +42,8 @@ library(mapview)
 mapviewOptions(fgb = FALSE)
 library(ggplot2)
 library(viridis)
+
+install.packages("sf")
 # Disable on-the-fly projections
 sf::sf_use_s2(FALSE)
 
@@ -112,17 +112,37 @@ The USA Counties shapefile filtered for California contains attribute informatio
 
 To import the Solar Footprints shapefile and USA Counties shapefile dataset into R, I used the “sf” package and “st_read” function to read in the dataset. The Social Vulnerability Index file was read in using the “utils” packages and “read.csv()” function.  The USA Counties shapefile dataset contained all states and associated counties in the US, however, our research question is focused on California only. To specifically target California data, we utilized the “dplyr” package along with the “filter()” function to isolate records associated with the state code "06," corresponding to California's STATEFPS code. For the Solar Footprint and Social Vulnerability data, I wrangled the dataset using a pipe, the “dpylr” package and “select()” function to select for the county name, type of solar panel, urban or rural status, and the geometry and then the county, FIPS, location, total population, population in poverty, and population of minorities, respectively. The Social Vulnerability dataset also required that the FIPS code be converted to a factor.
 
-Table: Data Structure Summary - Spatial Analysis
+Table 1: Data Structure Summary - Spatial Analysis
 
 Detail  | Description
 :------------- | -------------:
-Data Source  | 
-Retrieved from  | 
-Variables Used  | 
-Units Used  | 
-Data Range | 
-Minimum Value  | 
-Maximum Value  |
+Data Source  |  Solar_Footprints_V2_-1101629766070969057 (1).geojson, accessed April 1, 2024 - https://cecgiscaenergy.opendata.arcgis.com/datasets/9398e39a0424434b9e95ccf8e8938807_0/explore?location=36.209468%2C-119.976002%2C8.96    
+Retrieved from  | ArcGIS Online
+Variables Used  |  Solar footprint type (rooftop, parking lot, or ground), urban or rural fooprint, solar footprint area, geometry
+Units Used  | acres
+Data Range | 5 variables 5397 observations
+Minimum Value  | 0.0004131393 
+Maximum Value  |  7438.6033
+
+Table 2: Data Structure Summary - Spatial Analysis
+:------------- | -------------:
+Data Source  | USA Counties Shapefile filtered for California counties - dataset provided by class
+Retrieved from  | ENVI872 Class
+Variables Used  | STATEFP, COUNTYFP, COUNTYYNS, GEOID, NAME, GEOMETRY 
+Units Used  | County Code
+Data Range | 10 variables, 3220 observations
+Minimum Value  | NA
+Maximum Value  | NA
+
+Table 3: Data Structure Summary - Spatial Analysis
+:------------- | -------------:
+Data Source  |2018 Social Vulnerability Index CSV file from Agency for Toxic Substances and Disease Registry, accessed April 1, 2024 - https://www.atsdr.cdc.gov/placeandhealth/svi/data_documentation_download.html  
+Retrieved from  | 2018 Social Vulnerability Index CSV file from Agency for Toxic Substances and Disease Registry
+Variables Used  | COUNTY - county name, character, FIPS - county code, factor, LOCATION - county name, character, E_TOTPOP - estimated total population, integer, E_POV - estimated employed population, integer, E_MINRTY - estimated minority population, integer 
+Units Used  |people per county
+Data Range | 6 variables 58 observations
+Minimum Value  |  E_TOTPOP: 1146, E_POV: 227, E_MINRTY: 468
+Maximum Value  |  E_TOTPOP: 10098052, E_POV: 1589956, E_MINRTY: 7439000
 
 ##Part 2: Relationship between Energy and prices
 
@@ -134,9 +154,9 @@ Source: https://www.eia.gov/electricity/data/eia861m/
 
 ii.	Dependent variables: Prices of intalling solar panels (<10 MW) on a quarterly basis(2015-2021) 
 Source: https://www.californiadgstats.ca.gov/charts/
-Note: Since there are no generation costs in solar PV, we look at capex costs
+Note: Since there are no generation costs in solar PV, we look at CAPEX costs
 
-Table: Data Structure Summary - Energy Data
+Table 4 : Data Structure Summary - Energy Data
 
 Detail  | Description
 :------------- | -------------:
@@ -236,20 +256,28 @@ ggplot() +
 ##Part 2: Relationship between Energy and prices
 The plots below represent distributed solar PV capacity, generation and prices change from 2015-2021. We see that electricity capacity increases over time, generation showcases a upward trend with a seasonal component, and prices follow a U-shaped curve wherein they are initially high, then fall from 2018-2020 and then rise again.
 
-```{r Spatial Analysis, echo=FALSE, paged.print=FALSE}
+```{r Energy Analysis, echo=FALSE, paged.print=FALSE}
 # Plotting California energy prices vs capacity & generation 
 
 CA_Energy_Gen_Plot <- ggplot(CA_DSP_Energy_Price)+
-  geom_line(aes(x=CA_DSP_Energy$Date, y=CA_DSP_Energy$`Gen-Total`), color = "green")
+  geom_line(aes(x=CA_DSP_Energy$Date, y=CA_DSP_Energy$`Gen-Total`), color = "green")+
+    labs(title = "California Solar PV Generation",
+       x = "Date",
+       y = "Total Energy Generation")
 
 CA_Energy_Cap_Plot <- ggplot(CA_DSP_Energy_Price)+
-  geom_line(aes(x=CA_DSP_Energy$Date, y=CA_DSP_Energy$`Cap-Total`), color = "orange")
+  geom_line(aes(x=CA_DSP_Energy$Date, y=CA_DSP_Energy$`Cap-Total`), color = "orange")+
+  labs(title = "California Solar PV Capacity",
+       x = "Date",
+       y = "Total Energy Capacity")
 
 CA_Energy_Price_Plot  <- ggplot(CA_DSP_Energy_Price)+
   geom_line(aes(x=CA_DSP_Prices$Date, y=CA_DSP_Prices$Prices), color = "blue")
+ labs(title = "California Energy Prices",
+       x = "Date",
+       y = "Prices")
 
 plot_grid( CA_Energy_Cap_Plot, CA_Energy_Gen_Plot, CA_Energy_Price_Plot, nrow=1)
-
 ```
 \newpage
 
@@ -347,8 +375,8 @@ Statistical testing:
 Null Hypothesis (H0): There is no significant relationship between solar PV generation/ capacity and energy prices 
 Alternative Hypothesis (H1): There is a significant relationship between solar PV generation/ capacity and energy prices 
 
-We find from our GLM analysis that there is no significant relationship between solar PV prices and generation and/or capacity in either of the three segments of residential, commercial or industrial. We deduce this result from the p-value of the 12 GLMs conducted which are all great than 0.05. 
-```{r}
+We find from our GLM analysis that there is no significant relationship between solar PV prices and generation and/or capacity in either of the three segments of residential, commercial or industrial. We deduce this result from the p-value of the 12 GLMs conducted which are all greater than 0.05. 
+```{r GLM Analysis Question 1 }
 #GLM between Price vs Capacity and Generation
 
 DSP_price_capgen_glm <- lm(Prices ~ Cap_Total + Gen_Total, data = CA_DSP_Energy_Price)
@@ -359,7 +387,6 @@ print(summary(DSP_price_cap_glm))
 
 DSP_price_gen_glm <- lm(Prices ~ Gen_Total, data = CA_DSP_Energy_Price)
 print(summary(DSP_price_gen_glm))
-
 
 #GLM Between Price vs Residential Capacity and Generation
 
@@ -396,16 +423,17 @@ DSP_price_industrialgen_glm <- lm(Prices ~ Gen_Indus, data = CA_DSP_Energy_Price
 print(summary(DSP_price_industrialgen_glm))
 ```
 
-## Plotting generation vs prices
+## Plotting capacity and generation vs prices
 This result is supported by the plot of price vs capacity and generation, which are highly scattered with no visible trend.
 
-```{r}
+```{r Plotting capacity and generation vs. prices}
 #Capacity
 
 # Plotting Solar Capacity vs. Electricity Prices
 plot(CA_DSP_Energy_Price$Cap_Total, CA_DSP_Energy_Price$Prices, 
      xlab = "Solar PV Capacity", ylab = "Electricity Prices",
      main = "Solar PV Capacity vs Electricity Prices 2015-2021")
+title("Figure 1. Solar PV Capacity vs Electricity Prices 2015-2021")
 
 # Fitting linear regression model
 DSP_price_cap_glm <- lm(Prices ~ Cap_Total, data = CA_DSP_Energy_Price)
@@ -419,6 +447,7 @@ abline(DSP_price_cap_glm, col = "red")
 plot(CA_DSP_Energy_Price$Gen_Total, CA_DSP_Energy_Price$Prices, 
      xlab = "Solar PV Generation", ylab = "Electricity Prices",
      main = "Solar PV Generation vs Electricity Prices 2015-2021")
+title("Figure 2. Solar PV Generation vs Electricity Prices 2015-2021")
 
 # Fitting linear regression model
 DSP_price_gen_glm <- lm(Prices ~ Gen_Total, data = CA_DSP_Energy_Price)
@@ -436,7 +465,6 @@ abline(DSP_price_gen_glm, col = "red")
 
 Understanding the spatial distribution of large-scale solar footprints in California counties is critical for addressing both social and environmental issues. By examining the distribution, we can identify areas of overlap with minority populations and address climate justice issues to ensure an equitable distribution of renewable energy for all. This study addresses two spatial analysis questions: (1)the relationship between solar footprint size and location in rural or urban counties, and (2) the spatial distribution of industrial solar footprints and minority population size.
 
-Spatial Analysis Conclusions 
 This analysis revealed trends in the spatial distribution of solar footprints across California counties. Smaller solar installations were found to cluster more around urban areas, while larger solar footprints were found in rural areas. From the analysis, Kern county was found as the largest area covered by solar footprints, which supported the hypothesis that the county in California with the largest area in acres of large-scale solar footprints will be in a rural area. When analyzing minority population densities, Los Angeles was identified as having the largest population size across counties. The results showed that ground solar footprints were found clustered inland near Lancaster, while parking lot and rooftop installations were found concentrated along the coast. However, drawing specific conclusions about minority populations and solar footprint densities from the spatial map illustrating minority population sizes across counties and distribution of solar footprint was unclear. Overall, this analysis provides valuable insights into energy infrastructure and socioeconomic factors in California. 
 
 ##Part 2: Relationship between Energy and prices
@@ -445,5 +473,3 @@ The GLM results and data plots clearly show that there is no significant relatio
 
 \newpage
 
-# References
-<add references here if relevant, otherwise delete this section> 
