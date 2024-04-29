@@ -1,6 +1,6 @@
 ---
 title: "EDA Final Project: Exploring distributed solar PV in California"
-author: "Shubhangi Gupta, Brook Hemphill , Sydney Williams"
+author: "Shubhangi Gupta, Brook Hemphill, Sydney Williams"
 date: "04/30/2024"
 output:
   html_document: default
@@ -125,6 +125,8 @@ Minimum Value  | 0.0004131393
 Maximum Value  |  7438.6033
 
 Table 2: Data Structure Summary - Spatial Analysis
+
+Detail  | Description
 :------------- | -------------:
 Data Source  | USA Counties Shapefile filtered for California counties - dataset provided by class
 Retrieved from  | ENVI872 Class
@@ -135,6 +137,8 @@ Minimum Value  | NA
 Maximum Value  | NA
 
 Table 3: Data Structure Summary - Spatial Analysis
+
+Detail  | Description
 :------------- | -------------:
 Data Source  |2018 Social Vulnerability Index CSV file from Agency for Toxic Substances and Disease Registry, accessed April 1, 2024 - https://www.atsdr.cdc.gov/placeandhealth/svi/data_documentation_download.html  
 Retrieved from  | 2018 Social Vulnerability Index CSV file from Agency for Toxic Substances and Disease Registry
@@ -256,7 +260,7 @@ ggplot() +
 ##Part 2: Relationship between Energy and prices
 The plots below represent distributed solar PV capacity, generation and prices change from 2015-2021. We see that electricity capacity increases over time, generation showcases a upward trend with a seasonal component, and prices follow a U-shaped curve wherein they are initially high, then fall from 2018-2020 and then rise again.
 
-```{r Energy Analysis, echo=FALSE, paged.print=FALSE}
+```{r Energy Analysis, echo=FALSE, fig.height=5, fig.width=20, paged.print=FALSE}
 # Plotting California energy prices vs capacity & generation 
 
 CA_Energy_Gen_Plot <- ggplot(CA_DSP_Energy_Price)+
@@ -426,13 +430,12 @@ print(summary(DSP_price_industrialgen_glm))
 ## Plotting capacity and generation vs prices
 This result is supported by the plot of price vs capacity and generation, which are highly scattered with no visible trend.
 
-```{r Plotting capacity and generation vs. prices}
+```{r Plotting capacity and generation vs. prices, fig.height=6, fig.width=7}
 #Capacity
 
 # Plotting Solar Capacity vs. Electricity Prices
 plot(CA_DSP_Energy_Price$Cap_Total, CA_DSP_Energy_Price$Prices, 
-     xlab = "Solar PV Capacity", ylab = "Electricity Prices",
-     main = "Solar PV Capacity vs Electricity Prices 2015-2021")
+     xlab = "Solar PV Capacity", ylab = "Electricity Prices")
 title("Figure 1. Solar PV Capacity vs Electricity Prices 2015-2021")
 
 # Fitting linear regression model
@@ -445,8 +448,7 @@ abline(DSP_price_cap_glm, col = "red")
 
 # Plotting Solar PV Generation vs. Electricity Prices
 plot(CA_DSP_Energy_Price$Gen_Total, CA_DSP_Energy_Price$Prices, 
-     xlab = "Solar PV Generation", ylab = "Electricity Prices",
-     main = "Solar PV Generation vs Electricity Prices 2015-2021")
+     xlab = "Solar PV Generation", ylab = "Electricity Prices")
 title("Figure 2. Solar PV Generation vs Electricity Prices 2015-2021")
 
 # Fitting linear regression model
